@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUIS5111 — Complete Study System v2</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#161920;--surface2:#1e2230;--border:#2a2f3d;
+  --accent:#00c9ff;--accent2:#7b61ff;--accent3:#ff6b6b;--accent4:#ffb347;
+  --accent5:#c084fc;--accent6:#00e5a0;--text:#e8eaf0;--muted:#7a8099;
+  --font-head:"Syne",sans-serif;--font-code:"JetBrains Mono",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-head);min-height:100vh;}
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:250px;background:var(--surface);border-right:1px solid var(--border);padding:28px 0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:10;}
+.main{margin-left:250px;padding:40px 36px;max-width:1040px;}
+.logo{padding:0 24px 24px;border-bottom:1px solid var(--border);margin-bottom:18px;}
+.logo-tag{font-size:10px;font-family:var(--font-code);color:var(--accent);letter-spacing:.15em;text-transform:uppercase;}
+.logo h1{font-size:17px;font-weight:800;margin-top:4px;}
+.logo p{font-size:11px;color:var(--muted);margin-top:3px;}
+.nav-section{padding:0 12px;margin-bottom:6px;}
+.nav-label{font-size:10px;font-family:var(--font-code);color:var(--muted);letter-spacing:.1em;padding:0 12px;margin-bottom:4px;}
+.nav-btn{width:100%;background:none;border:none;color:var(--muted);font-family:var(--font-head);font-size:13px;font-weight:600;padding:9px 12px;border-radius:8px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;transition:all .15s;}
+.nav-btn:hover{color:var(--text);background:var(--surface2);}
+.nav-btn.active{color:var(--accent);background:rgba(0,201,255,.08);}
+.nav-btn .dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.nav-btn.active .dot{background:var(--accent);}
+.ch-nav{padding:0 12px;margin-top:4px;}
+.ch-nav-btn{width:100%;background:none;border:none;color:var(--muted);font-family:var(--font-code);font-size:11px;padding:6px 12px;border-radius:6px;cursor:pointer;text-align:left;transition:all .15s;}
+.ch-nav-btn:hover{color:var(--text);background:var(--surface2);}
+.ch-nav-btn.active{color:var(--accent2);}
+.page-header{margin-bottom:32px;}
+.page-tag{font-family:var(--font-code);font-size:11px;color:var(--accent);letter-spacing:.1em;margin-bottom:8px;}
+.page-header h2{font-size:28px;font-weight:800;}
+.page-header p{color:var(--muted);font-size:14px;margin-top:6px;}
+.section{display:none;}.section.active{display:block;}
+/* Plan */
+.week-label{font-family:var(--font-code);font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.week-label::after{content:"";flex:1;height:1px;background:var(--border);}
+.week-block{margin-bottom:32px;}
+.day-grid{display:flex;flex-direction:column;gap:8px;}
+.day-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:16px;transition:border-color .2s;}
+.day-card:hover{border-color:var(--accent);}
+.day-num{font-family:var(--font-code);font-size:11px;color:var(--muted);width:42px;flex-shrink:0;}
+.day-badge{width:8px;height:32px;border-radius:4px;flex-shrink:0;}
+.day-info h3{font-size:14px;font-weight:700;margin-bottom:2px;}
+.day-info p{font-size:12px;color:var(--muted);}
+.badge-new{background:var(--accent2);}.badge-review{background:var(--accent4);}.badge-rest{background:var(--muted);}.badge-hard{background:var(--accent3);}.badge-exam{background:var(--accent);}
+.tip-box{background:rgba(0,201,255,.06);border:1px solid rgba(0,201,255,.2);border-radius:10px;padding:14px 18px;font-size:13px;color:var(--text);margin-top:8px;line-height:1.7;}
+.tip-box strong{color:var(--accent);}
+/* Units */
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:12px;margin-bottom:24px;}
+.ch-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s;}
+.ch-card:hover{border-color:var(--accent2);transform:translateY(-2px);}
+.ch-card .ch-num{font-family:var(--font-code);font-size:10px;color:var(--accent2);margin-bottom:6px;}
+.ch-card h3{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:4px;}
+.ch-card p{font-size:11px;color:var(--muted);}
+.ch-detail{display:none;}.ch-detail.open{display:block;}
+.back-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--font-head);font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer;margin-bottom:24px;transition:all .15s;}
+.back-btn:hover{color:var(--text);border-color:var(--accent);}
+.detail-block{margin-bottom:28px;}
+.detail-block h4{font-family:var(--font-code);font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.concept-list{display:flex;flex-direction:column;gap:10px;}
+.concept-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.concept-item strong{color:var(--accent2);font-size:13px;display:block;margin-bottom:3px;}
+.concept-item p{font-size:13px;color:var(--muted);line-height:1.6;}
+.note-block{background:rgba(123,97,255,.07);border-left:3px solid var(--accent2);padding:12px 16px;border-radius:0 8px 8px 0;font-size:13px;color:var(--text);margin-bottom:10px;line-height:1.75;}
+.note-block strong{color:var(--accent2);}
+.exam-tip{background:rgba(255,107,107,.06);border-left:3px solid var(--accent3);padding:12px 16px;border-radius:0 8px 8px 0;font-size:13px;color:var(--text);margin-bottom:8px;line-height:1.7;}
+.exam-tip strong{color:var(--accent3);}
+.data-table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;overflow-x:auto;display:block;}
+.data-table th{background:rgba(123,97,255,.15);color:var(--accent2);font-family:var(--font-code);font-size:11px;padding:8px 12px;text-align:left;border:1px solid var(--border);}
+.data-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6;}
+.data-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+/* Diagrams */
+.diagram-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin:14px 0;overflow-x:auto;}
+.diagram-flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;}
+.d-box{display:inline-block;padding:8px 14px;border-radius:7px;border:1.5px solid var(--accent2);background:rgba(123,97,255,.1);color:var(--accent2);font-family:var(--font-code);font-size:12px;font-weight:700;text-align:center;min-width:90px;}
+.d-box.green{border-color:var(--accent6);background:rgba(0,229,160,.1);color:var(--accent6);}
+.d-box.blue{border-color:var(--accent);background:rgba(0,201,255,.1);color:var(--accent);}
+.d-box.red{border-color:var(--accent3);background:rgba(255,107,107,.1);color:var(--accent3);}
+.d-box.orange{border-color:var(--accent4);background:rgba(255,179,71,.1);color:var(--accent4);}
+.d-arrow{font-size:1.2em;color:var(--muted);}
+.osi-stack{display:flex;flex-direction:column;gap:3px;max-width:380px;margin:0 auto;}
+.osi-layer{padding:9px 16px;border-radius:6px;font-family:var(--font-code);font-size:12px;font-weight:700;text-align:center;}
+.topo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:12px 0;}
+.topo-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;}
+.topo-card h5{color:var(--accent2);font-size:12px;font-family:var(--font-code);margin-bottom:6px;}
+.topo-card p{font-size:12px;color:var(--muted);line-height:1.6;}
+.mgmt-levels{display:flex;flex-direction:column;gap:4px;max-width:420px;margin:16px auto;}
+.mgmt-level{padding:10px 18px;border-radius:6px;font-family:var(--font-code);font-size:12px;font-weight:700;text-align:center;}
+.gen-table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;}
+.gen-table th{background:rgba(0,201,255,.12);color:var(--accent);font-family:var(--font-code);font-size:11px;padding:7px 12px;border:1px solid var(--border);text-align:left;}
+.gen-table td{padding:7px 12px;border:1px solid var(--border);color:var(--text);vertical-align:top;}
+.gen-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+/* Quiz */
+.quiz-setup{max-width:600px;}
+.quiz-setup h3{font-size:20px;font-weight:800;margin-bottom:6px;}
+.quiz-setup p{color:var(--muted);font-size:14px;margin-bottom:24px;}
+.ch-select-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:24px;}
+.ch-sel-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--font-head);font-weight:600;font-size:12px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .15s;text-align:left;}
+.ch-sel-btn:hover{border-color:var(--accent2);color:var(--text);}
+.ch-sel-btn.sel{background:rgba(123,97,255,.12);border-color:var(--accent2);color:var(--accent2);}
+.progress-bar{height:3px;background:var(--surface2);border-radius:2px;margin-bottom:28px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.q-meta{font-family:var(--font-code);font-size:11px;color:var(--muted);margin-bottom:10px;}
+.q-text{font-size:16px;font-weight:700;line-height:1.6;margin-bottom:20px;}
+.options{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.opt-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-head);font-weight:600;font-size:14px;padding:13px 16px;border-radius:10px;cursor:pointer;text-align:left;transition:all .15s;}
+.opt-btn:hover:not(:disabled){border-color:var(--accent2);background:rgba(123,97,255,.08);}
+.opt-btn.correct{background:rgba(0,229,160,.1);border-color:var(--accent6);color:var(--accent6);}
+.opt-btn.wrong{background:rgba(255,107,107,.1);border-color:var(--accent3);color:var(--accent3);}
+.opt-btn:disabled{cursor:default;}
+.explanation-box{background:var(--surface2);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--muted);line-height:1.6;display:none;margin-bottom:16px;}
+.explanation-box.show{display:block;}
+.explanation-box strong{color:var(--accent);}
+.next-btn{background:var(--accent2);color:#fff;font-family:var(--font-head);font-weight:700;font-size:13px;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;display:none;transition:opacity .15s;}
+.next-btn.show{display:inline-block;}
+.next-btn:hover{opacity:.85;}
+.score-wrap{text-align:center;max-width:480px;padding:40px;background:var(--surface);border:1px solid var(--border);border-radius:16px;}
+.score-big{font-size:60px;font-weight:800;color:var(--accent);line-height:1;margin:12px 0;}
+.score-label{font-family:var(--font-code);font-size:11px;color:var(--muted);letter-spacing:.1em;}
+.score-msg{font-size:15px;color:var(--muted);margin:12px 0 24px;line-height:1.6;}
+.btn-primary{background:var(--accent);color:#000;font-family:var(--font-head);font-weight:700;font-size:13px;border:none;padding:10px 22px;border-radius:8px;cursor:pointer;transition:opacity .15s;}
+.btn-primary:hover{opacity:.85;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+/* Paper */
+.paper-section{margin-bottom:40px;}
+.paper-section h3{font-size:18px;font-weight:800;color:var(--accent);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:12px;}
+.q-card .q-num{font-family:var(--font-code);font-size:10px;color:var(--accent2);margin-bottom:8px;}
+.q-card .q-body{font-size:14px;line-height:1.7;}
+.answer-toggle{background:none;border:1px solid var(--border);color:var(--muted);font-size:12px;font-family:var(--font-head);font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;margin-top:10px;transition:all .15s;}
+.answer-toggle:hover{border-color:var(--accent);color:var(--accent);}
+.answer-reveal{display:none;margin-top:10px;background:rgba(0,201,255,.07);border:1px solid rgba(0,201,255,.2);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--accent);font-family:var(--font-code);white-space:pre-wrap;line-height:1.8;}
+.answer-reveal.show{display:block;}
+@media(max-width:700px){
+  .sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--border);}
+  .shell{flex-direction:column;}.main{margin-left:0;padding:24px 16px;}
+  .sidebar .ch-nav{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-tag">IIE Module &mdash; Complete v2</div>
+    <h1>BUIS5111</h1>
+    <p>Business Information Systems &middot; 5 Units</p>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Navigation</div>
+    <button class="nav-btn active" onclick="showSection('plan')"><span class="dot"></span>Study Plan</button>
+    <button class="nav-btn" onclick="showSection('units')"><span class="dot"></span>Learning Units</button>
+    <button class="nav-btn" onclick="showSection('glossary')"><span class="dot"></span>Key Terms</button>
+    <button class="nav-btn" onclick="showSection('test')"><span class="dot"></span>Mock Tests</button>
+    <button class="nav-btn" onclick="showSection('paper')"><span class="dot"></span>Exam Questions</button>
+  </div>
+  <div class="nav-section" style="margin-top:12px">
+    <div class="nav-label">Quick Jump</div>
+    <div class="ch-nav" id="sidebarChaps"></div>
+  </div>
+</nav>
+<main class="main">
+
+<!-- STUDY PLAN -->
+<div id="plan" class="section active">
+  <div class="page-header">
+    <div class="page-tag">// 14-day schedule</div>
+    <h2>Study Plan</h2>
+    <p>3&ndash;4 hours daily &middot; 5 learning units &middot; 2 review days &middot; 1 rest day</p>
+  </div>
+  <div class="week-block">
+    <div class="week-label">Week 1 &mdash; Foundations</div>
+    <div class="day-grid">
+      <div class="day-card"><div class="day-num">Day 1</div><div class="day-badge badge-new"></div><div class="day-info"><h3>LU1 &mdash; Data, Information, Knowledge &amp; System Model</h3><p>Data vs information vs knowledge &middot; Input-Process-Output model &middot; IS components &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 2</div><div class="day-badge badge-new"></div><div class="day-info"><h3>LU1 &mdash; BIS Resources, CBIS, Porter&apos;s Strategies &amp; Five Forces</h3><p>5 BIS resources &middot; management levels &middot; Porter&apos;s 3 strategies &middot; Five Forces &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 3</div><div class="day-badge badge-new"></div><div class="day-info"><h3>LU2 &mdash; Enterprise Systems: ERP, CRM, SCM, SRM</h3><p>Types, modules, benefits, disadvantages &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 4</div><div class="day-badge badge-new"></div><div class="day-info"><h3>LU2 &mdash; TPS, DSS, IRS, EIS &amp; Functional IS</h3><p>HRIS, LIS, MFIS, FIS &middot; 3 management levels &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 5</div><div class="day-badge badge-hard"></div><div class="day-info"><h3>LU3 &mdash; Hardware: CPU, Memory, Storage, Computer Classes &#x26A1;</h3><p>Components &middot; performance factors &middot; memory hierarchy &middot; 6 classes &middot; 3.5 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 6</div><div class="day-badge badge-review"></div><div class="day-info"><h3>Review + Mock Test &mdash; LU1, LU2, LU3</h3><p>Do mock tests &middot; identify weak spots &middot; revise notes &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 7</div><div class="day-badge badge-rest"></div><div class="day-info"><h3>Rest Day</h3><p>Light revision only. Let your brain consolidate Week 1.</p></div></div>
+    </div>
+  </div>
+  <div class="week-block">
+    <div class="week-label">Week 2 &mdash; Databases, Networks &amp; Exam Prep</div>
+    <div class="day-grid">
+      <div class="day-card"><div class="day-num">Day 8</div><div class="day-badge badge-new"></div><div class="day-info"><h3>LU3 &mdash; Software, I/O Devices &amp; Programming Language Generations</h3><p>OS vs application &middot; input/output device categories &middot; 1GL&ndash;5GL &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 9</div><div class="day-badge badge-hard"></div><div class="day-info"><h3>LU4 &mdash; DBMS, Data Hierarchy, Access Methods &amp; Relational Model &#x26A1;</h3><p>5 DBMS components &middot; SQL &middot; normalisation &middot; 3.5 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 10</div><div class="day-badge badge-new"></div><div class="day-info"><h3>LU4 &mdash; Data Warehouses, Analytics Types &amp; Big Data 4Vs</h3><p>Warehouse vs mart &middot; descriptive/predictive/prescriptive analytics &middot; Big Data tools &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 11</div><div class="day-badge badge-hard"></div><div class="day-info"><h3>LU5 &mdash; Networks, OSI 7 Layers &amp; Topologies &#x26A1;</h3><p>PAN/LAN/MAN/WAN &middot; OSI model &middot; star/ring/bus/mesh &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 12</div><div class="day-badge badge-new"></div><div class="day-info"><h3>LU5 &mdash; Transmission Media, Internet, Cloud, VPN &amp; Wireless Security</h3><p>Twisted pair/coaxial/fibre/microwave/satellite &middot; DNS &middot; ISP &middot; VPN &middot; threats &middot; 3 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 13</div><div class="day-badge badge-review"></div><div class="day-info"><h3>Full Mock Test + Exam Questions Review</h3><p>Full exam simulation &middot; review all wrong answers &middot; 3.5 hrs</p></div></div>
+      <div class="day-card"><div class="day-num">Day 14</div><div class="day-badge badge-exam"></div><div class="day-info"><h3>Exam Day &#x1F3AF;</h3><p>Review key terms &amp; action words only. Eat well. Trust your prep.</p></div></div>
+    </div>
+  </div>
+  <div class="tip-box"><strong>Exam strategy:</strong> BUIS5111 is 2 hours, 100 marks, closed book covering ALL 5 units. Use action words: &ldquo;identify&rdquo; = list, &ldquo;explain&rdquo; = describe with reasons in your own words, &ldquo;discuss&rdquo; = your view + examples, &ldquo;compare/contrast&rdquo; = similarities AND differences. Always use module terminology. Aim for at least 2 points per mark.</div>
+</div>
+
+<!-- LEARNING UNITS -->
+<div id="units" class="section">
+  <div class="page-header">
+    <div class="page-tag">// tap any unit</div>
+    <h2>Learning Units</h2>
+    <p>Full notes, diagrams, key concepts, and exam tips for all 5 units</p>
+  </div>
+  <div id="ch-grid-view"><div class="ch-grid" id="chGrid"></div></div>
+  <div id="ch-detail-view" class="ch-detail">
+    <button class="back-btn" onclick="showChGrid()">&larr; All units</button>
+    <div id="chDetailContent"></div>
+  </div>
+</div>
+
+<!-- GLOSSARY -->
+<div id="glossary" class="section">
+  <div class="page-header">
+    <div class="page-tag">// exam vocabulary</div>
+    <h2>Key Terms &amp; Action Words</h2>
+    <p>All core definitions and examiner expectations for every action word</p>
+  </div>
+  <div class="detail-block">
+    <h4>Examination Action Words</h4>
+    <table class="data-table">
+      <tr><th>Action Word</th><th>What the examiner expects</th></tr>
+      <tr><td>Analyse</td><td>Group or separate concepts/facts into categories based on criteria.</td></tr>
+      <tr><td>Apply</td><td>Use relevant information to solve a given problem.</td></tr>
+      <tr><td>Calculate</td><td>Determine a value using a formula or specific calculation method.</td></tr>
+      <tr><td>Compare / Contrast</td><td>Point out similarities OR differences between objects or points of view.</td></tr>
+      <tr><td>Define</td><td>Give a short, clear description of a term or concept.</td></tr>
+      <tr><td>Demonstrate</td><td>Show clearly / prove by reasoning, evidence, and many examples.</td></tr>
+      <tr><td>Describe</td><td>Tell in detail how a process works. No personal opinion required.</td></tr>
+      <tr><td>Differentiate / Distinguish</td><td>Give the differences between objects or statements.</td></tr>
+      <tr><td>Discuss</td><td>Explain in your own words; include your view and comments.</td></tr>
+      <tr><td>Draw</td><td>Create a diagram or visual representation.</td></tr>
+      <tr><td>Evaluate</td><td>Make a judgement weighing pros and cons with evidence.</td></tr>
+      <tr><td>Explain</td><td>Write in your own words; clarify with reasons and examples. Prove you understand.</td></tr>
+      <tr><td>Identify</td><td>Name or list the relevant items, features, or examples.</td></tr>
+      <tr><td>Illustrate</td><td>Explain by means of a detailed description and/or diagrams.</td></tr>
+    </table>
+  </div>
+  <div class="detail-block">
+    <h4>Complete Module Glossary</h4>
+    <div class="concept-list" id="glossaryList"></div>
+  </div>
+</div>
+
+<!-- MOCK TEST -->
+<div id="test" class="section">
+  <div class="page-header">
+    <div class="page-tag">// interactive quiz</div>
+    <h2>Mock Tests</h2>
+    <p>Select learning units then answer MCQ questions with instant scored feedback</p>
+  </div>
+  <div id="quiz-setup" class="quiz-setup">
+    <h3>Choose your units</h3>
+    <p>Select one or more learning units then start the test.</p>
+    <div class="ch-select-grid" id="chSelGrid"></div>
+    <button class="btn-primary" id="startBtn" onclick="startQuiz()" disabled>Start Test &rarr;</button>
+  </div>
+  <div id="quiz-running" style="display:none;max-width:620px;">
+    <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    <div class="q-meta" id="qMeta"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optArea"></div>
+    <div class="explanation-box" id="expBox"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQ()">Next question &rarr;</button>
+  </div>
+  <div id="quiz-score" style="display:none;">
+    <div class="score-wrap">
+      <div class="score-label">YOUR SCORE</div>
+      <div class="score-big" id="scoreBig"></div>
+      <div class="score-msg" id="scoreMsg"></div>
+      <button class="btn-primary" onclick="resetQuiz()">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXAM QUESTIONS -->
+<div id="paper" class="section">
+  <div class="page-header">
+    <div class="page-tag">// exam practice</div>
+    <h2>Exam Questions</h2>
+    <p>BUIS5111 / BUIS6122 exam-style questions with full model answers</p>
+  </div>
+
+  <div class="paper-section">
+    <h3>Question 1 &mdash; Overview of BIS (LU1)</h3>
+    <div class="q-card"><div class="q-num">Q.1.1 (4 marks)</div><div class="q-body">Explain the difference between data and information, and provide one example of each in a business context.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">Data = raw, unprocessed facts that do not support decision-making on their own.
+Example: the number 450 in a spreadsheet cell.
+
+Information = data that has been processed, organised, and given context to support decision-making.
+Example: "Total sales for March: R450 000"
+
+Key distinction: data is INPUT; information is the OUTPUT after processing.</div></div>
+
+    <div class="q-card"><div class="q-num">Q.1.2 (5 marks)</div><div class="q-body">Identify at least five basic resources required to support Business Information Systems (BIS).</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. People resources - managers, IT staff, and end users
+2. Hardware resources - computers, servers, printers, smartphones, storage media
+3. Software resources - programs, instruction manuals, company policies
+4. Communications resources - networks, cables, Wi-Fi hardware and software
+5. Data resources - computer databases, paper files, sensor data, customer records</div></div>
+
+    <div class="q-card"><div class="q-num">Q.1.3 (6 marks)</div><div class="q-body">Explain how an organisation such as Amazon could use any of Michael Porter's three strategies to gain a competitive advantage over its competitors.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Cost Leadership - Amazon automates warehouses, offers digital delivery (Kindle, Prime Video), and emails statements instead of printing. Lower operational costs = lower prices = competitive edge.
+
+2. Differentiation - Amazon Prime offers unique features (same-day delivery, exclusive streaming, early deals) that competitors cannot easily replicate, building strong customer loyalty.
+
+3. Focus - Amazon Web Services (AWS) targets businesses needing cloud computing, not general consumers. Dominating this niche gives Amazon a massive advantage in enterprise cloud services.
+
+(Any one or two strategies with relevant examples will score marks.)</div></div>
+
+    <div class="q-card"><div class="q-num">Q.1.4 (6 marks)</div><div class="q-body">Briefly discuss at least three characteristics of computer system components that may impact a computer system's performance.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Number and size of processors - more cores (dual, quad, octa) increase parallel processing. A 64-bit processor handles data more efficiently than a 32-bit one.
+2. Bus component - the bus transfers data between CPU and hardware. A wider bus carries more data per cycle, increasing speed.
+3. Clock speed - measured in MHz or GHz. Higher clock speed = more instructions processed per second.
+4. RAM - more RAM allows more data in fast-access storage, reducing delays from reading secondary storage.
+5. Storage type - SSDs are faster than HDDs, impacting OS and application load times.</div></div>
+
+    <div class="q-card"><div class="q-num">Q.1.5 (5 marks)</div><div class="q-body">Describe Porter's Five Forces model. Briefly explain each force.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">Porter's Five Forces is used to analyse an organisation's competitive position and determine the best IS strategy.
+
+1. Buyer Power - HIGH when customers have many choices. Reduce through differentiation and loyalty programmes.
+2. Supplier Power - HIGH when customers have few alternative suppliers. Internet access has increased buyer options, reducing supplier power.
+3. Threat of Substitute Products - when competitors offer similar products, organisations add value and features to differentiate.
+4. Threat of New Entrants - organisations use focus strategy to make it difficult for others to replicate their products.
+5. Rivalry Among Competitors - increases as more competitors enter. Managed by offering superior value-added services.</div></div>
+
+    <div class="q-card"><div class="q-num">Q.1.6 (4 marks)</div><div class="q-body">Identify the three levels of management and state which type of information system is used at each level.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Strategic level (Top/Senior management)
+   IS used: EIS (Executive Information System) and DSS (Decision Support System)
+   Purpose: long-term, unstructured strategic decisions
+
+2. Tactical level (Middle management)
+   IS used: MIS / IRS (Information Reporting System) and DSS
+   Purpose: semi-structured planning and control decisions
+
+3. Operational level (Supervisors / front-line workers)
+   IS used: TPS (Transaction Processing System) and OAS (Office Automation System)
+   Purpose: structured, day-to-day routine transactions</div></div>
+  </div>
+
+  <div class="paper-section">
+    <h3>Question 2 &mdash; Enterprise &amp; Functional IS (LU2)</h3>
+    <div class="q-card"><div class="q-num">Q.2.1 (4 marks)</div><div class="q-body">Briefly describe how an enterprise system functions.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">Enterprise systems support business processes across ALL functional boundaries. They:
+- Use Internet technology to integrate information internally and with external stakeholders
+- Feature a centralised database structure for seamless data sharing across all departments
+- Have defined business process blueprints (e.g. procurement, manufacturing, sales)
+- Provide a cross-functional process view of the entire organisation
+
+Examples: SAP ERP, Microsoft Dynamics</div></div>
+
+    <div class="q-card"><div class="q-num">Q.2.2 (5 marks)</div><div class="q-body">Identify at least five important features of Executive Information Systems (EIS).</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Provides summary information for monitoring business performance
+2. Primarily used for strategic decision-making (also supports tactical decisions)
+3. Offers drill-down capability to access detailed underlying information
+4. Includes analysis tools for data interpretation
+5. Integrates with other systems for problem-solving and daily operations
+6. Consolidates data from various internal AND external sources
+7. Tailored user-friendly design for non-computer-savvy senior managers</div></div>
+
+    <div class="q-card"><div class="q-num">Q.2.3 (5 marks)</div><div class="q-body">Discuss the differences between a Transaction Processing System (TPS) and a Management Information System (MIS/IRS).</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">TPS (Transaction Processing System):
+- Handles day-to-day operational transactions (sales, purchases, payroll)
+- Used at the operational level of management
+- Processes high volumes of structured, routine data
+- Example: POS system at a supermarket
+
+MIS / IRS (Management/Information Reporting System):
+- Generates reports from TPS data to support middle management decisions
+- Used for tactical and planning decisions
+- Produces periodic reports (monthly financials) and exception reports (threshold breaches)
+- Example: monthly sales summary report
+
+Relationship: MIS relies on data captured by TPS. One feeds the other.</div></div>
+
+    <div class="q-card"><div class="q-num">Q.2.4 (6 marks)</div><div class="q-body">Explain how a CRM system benefits an organisation. Include three CRM applications.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">CRM systems are centred around a customer database and help manage marketing, sales, and service.
+
+Three CRM applications:
+1. Customer data collection - gathers personal details (age, gender, contact) and transaction history (location, date, quantity, price) to personalise service.
+2. Customer data analysis - categorises and targets customers based on criteria, enhancing marketing campaign effectiveness.
+3. Salesforce automation - manages the full sales cycle from lead generation through to closing and after-sales service.
+
+e-CRM: when employees and customers access the CRM database through a website.
+Benefit: improved customer loyalty, personalised service, more effective marketing.</div></div>
+  </div>
+
+  <div class="paper-section">
+    <h3>Question 3 &mdash; The Machine Behind Computing (LU3)</h3>
+    <div class="q-card"><div class="q-num">Q.3.1 (5 marks)</div><div class="q-body">Identify and describe the main components of a computer system.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Input devices - send data to the computer (keyboard, mouse, scanner, barcode reader, microphone)
+2. Main memory (RAM) - volatile, temporarily holds data and instructions for CPU
+3. CPU - the brain; contains ALU (arithmetic/logic) and Control Unit (manages data flow)
+4. Secondary storage - permanent data storage (HDD, SSD, USB flash drive, optical disc)
+5. Output devices - present processed data to user (monitor, printer, speakers, projector)
+
+Additional: motherboard, disk drives, ports, buses, adapter cards, CPU case</div></div>
+
+    <div class="q-card"><div class="q-num">Q.3.2 (6 marks)</div><div class="q-body">Distinguish between the six classes of computers.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Supercomputers - most powerful; weather forecasting, nuclear research, protein folding. Speed in petaFLOPS. Example: IBM Blue Gene/L
+2. Mainframes - large organisational computers; process millions of instructions/second; banks and governments; expensive; require HVAC data centres
+3. Minicomputers/Servers - manage network resources; types: application, database, file, mail, print, web, RAS servers
+4. Personal Computers (PCs) - home and small business use; performance depends on processor speed and RAM
+5. Notebooks/Laptops - portable, battery-powered; same capabilities as desktop PCs
+6. Subnotebooks - smaller than laptops; no optical drives</div></div>
+
+    <div class="q-card"><div class="q-num">Q.3.3 (5 marks)</div><div class="q-body">Describe the five generations of programming languages, providing an example of each.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1GL - Machine language: binary code (0s and 1s); directly executed by CPU; no translation needed. Example: 01001000
+2GL - Assembly language: uses symbolic names (mnemonics); requires assembler to translate. Example: MOV AX, 1
+3GL - High-level language: human-readable; requires compiler/interpreter. Examples: C, Java, Python, C++
+4GL - Very high-level: closer to natural language; used for database queries. Examples: SQL, MATLAB, SAS
+5GL - Natural/AI language: uses constraints to solve problems; used in AI. Examples: Prolog, LISP</div></div>
+
+    <div class="q-card"><div class="q-num">Q.3.4 (5 marks)</div><div class="q-body">Identify the five characteristics that must be present for a solution to qualify as cloud computing, and name two cloud storage providers.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">5 Cloud Characteristics:
+1. On-demand self-service - users access resources without intermediary assistance
+2. Broad network access - accessible from any device/location
+3. Resource pooling - unused services shared with other users
+4. Rapid elasticity - environment expands quickly in response to demand
+5. Measured service - users can measure and track their service usage
+
+Cloud storage providers: Amazon AWS (Glacier), Google Cloud Storage, Microsoft Azure</div></div>
+  </div>
+
+  <div class="paper-section">
+    <h3>Question 4 &mdash; Database Systems and Analytics (LU4)</h3>
+    <div class="q-card"><div class="q-num">Q.4.1 (5 marks)</div><div class="q-body">Describe the five components of a Database Management System (DBMS).</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Database Engine - the heart of the DBMS; supports storage, manipulation, and retrieval of data
+2. Data Definition - maintains the data dictionary; defines structure of files, field properties, primary keys, and relationships using DDL (Data Definition Language)
+3. Data Manipulation - adds, deletes, modifies, retrieves records using SQL (Structured Query Language) or QBE (Query By Example)
+4. Application Generation - creates user-friendly screens and report menus for data entry; used by IT professionals and DBAs
+5. Data Administration - handles backup/recovery, security, change management, and CRUD privileges; managed by the Database Administrator (DBA)</div></div>
+
+    <div class="q-card"><div class="q-num">Q.4.2 (5 marks)</div><div class="q-body">Describe the data hierarchy from a bit to a database, providing an example at each level.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">Bit -> Character/Byte -> Field -> Record -> File -> Database
+
+Example (customer database):
+- Bit: smallest unit - 0 or 1
+- Character: single letter e.g. "C" in "Cust01"
+- Field: complete value "Cust01" (customer number)
+- Record: entire row - Cust01, John, Doe
+- File: all customer records in the Customer table
+- Database: Customer table + Orders table linked together</div></div>
+
+    <div class="q-card"><div class="q-num">Q.4.3 (3 marks)</div><div class="q-body">What is the difference between a data warehouse and a data mart?</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">Data warehouse: large, organisation-wide repository that stores historical data from ALL departments and sources. Used for strategic business intelligence.
+
+Data mart: a SUBSET of a data warehouse. Smaller and focused on a specific department or function only (e.g. only sales data or only HR data).
+
+In short: data mart is contained within and is a part of the data warehouse.</div></div>
+
+    <div class="q-card"><div class="q-num">Q.4.4 (4 marks)</div><div class="q-body">Describe the four characteristics of Big Data (the 4 Vs) and name two Big Data tools.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Volume - enormous amounts of data (terabytes/petabytes daily from transactions, social media, IoT)
+2. Variety - structured (tables), semi-structured (XML, JSON), unstructured (videos, social posts, images)
+3. Velocity - speed at which data must be collected and processed, often in real time
+4. Veracity - messiness/quality challenges (Twitter abbreviations, typos, speech patterns)
+
+Big Data tools: Apache Hadoop, NoSQL, Cassandra, SAP Big Data Analytics, Tableau, SAS</div></div>
+
+    <div class="q-card"><div class="q-num">Q.4.5 (3 marks)</div><div class="q-body">Briefly describe the three types of business analytics.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Descriptive analytics - analyses historical data to answer "What happened?" Example: monthly sales report showing revenue dropped 10% in March.
+
+2. Predictive analytics - uses statistical models to answer "What might happen?" Example: forecasting that sales will drop 15% next quarter based on trends.
+
+3. Prescriptive analytics - recommends actions to answer "What should we do?" Example: recommending a 20% discount promotion to prevent the forecasted sales drop.</div></div>
+  </div>
+
+  <div class="paper-section">
+    <h3>Question 5 &mdash; Networks, Telecommunications &amp; Internet (LU5)</h3>
+    <div class="q-card"><div class="q-num">Q.5.1 (7 marks)</div><div class="q-body">Name and describe the function of each of the seven layers of the OSI model.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">7. Application Layer - supports user tasks: email, file transfers, database access, web browsing
+6. Presentation Layer - formats message packets for compatibility between different systems
+5. Session Layer - establishes, manages, and terminates communication sessions between computers
+4. Transport Layer - ensures messages delivered without error, in sequence, with no loss or duplication
+3. Network Layer - responsible for ROUTING messages through the network
+2. Data Link Layer - oversees establishment and control of the communication link
+1. Physical Layer - transmits raw binary data (bits) over the physical medium
+
+Memory tip (top to bottom): "All People Seem To Need Data Processing"</div></div>
+
+    <div class="q-card"><div class="q-num">Q.5.2 (5 marks)</div><div class="q-body">Describe the four main network topologies. Give one advantage and one disadvantage of each.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Star - all devices connect to a central hub/switch
+   Advantage: one cable failure only affects that device
+   Disadvantage: central hub failure = entire network down
+
+2. Ring - devices connected in a circular loop; data travels one direction
+   Advantage: reduces data collisions
+   Disadvantage: one device failure can disrupt the entire ring
+
+3. Bus - all devices share one common backbone cable
+   Advantage: cheap and simple to set up for small networks
+   Disadvantage: main cable failure = entire network down
+
+4. Mesh - every device connects to every other device
+   Advantage: highest fault tolerance; multiple data paths
+   Disadvantage: most expensive and complex to install and manage</div></div>
+
+    <div class="q-card"><div class="q-num">Q.5.3 (5 marks)</div><div class="q-body">Describe five transmission media used in telecommunications and briefly state one characteristic of each.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">1. Twisted pair cable - two insulated copper wires twisted together; cheap, widely used in LANs (Cat5e, Cat6); susceptible to interference
+2. Coaxial cable - central copper conductor surrounded by insulation and shielding; better noise resistance than twisted pair; used in cable TV and older networks
+3. Fibre optic cable - transmits data as pulses of light through glass/plastic fibres; fastest transmission; immune to electromagnetic interference; expensive
+4. Microwave transmission - wireless; uses high-frequency radio waves; requires line of sight between towers; used for long-distance point-to-point links
+5. Satellite transmission - signals sent to orbiting satellite and back; covers vast geographic areas; used for remote areas; higher latency than terrestrial media</div></div>
+
+    <div class="q-card"><div class="q-num">Q.5.4 (4 marks)</div><div class="q-body">Identify four benefits and two disadvantages of using computer networks in an organisation.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">Benefits:
+1. Lower transaction costs - less human input required due to automation
+2. Improved sharing of information and hardware resources (e.g. shared printer, files)
+3. Supports virtual organisations and remote working
+4. Enables just-in-time delivery by connecting systems to real-time inventory data
+5. Facilitates communication with customers, suppliers, and partners globally
+
+Disadvantages:
+1. Over-reliance - if the network fails, mission-critical operations are disrupted
+2. High initial setup costs for infrastructure, hardware, and ongoing administration</div></div>
+
+    <div class="q-card"><div class="q-num">Q.5.5 (4 marks)</div><div class="q-body">Explain what a VPN is and describe two benefits of using a VPN in an organisation.</div>
+    <button class="answer-toggle" onclick="toggleAns(this)">Show Answer</button>
+    <div class="answer-reveal">VPN (Virtual Private Network): extends a private network securely across a public network (the Internet) using encryption and tunnelling protocols. It allows users to access organisational resources remotely as if they were physically on the internal network.
+
+Two benefits:
+1. Secure remote access - employees working from home or travelling can access internal systems securely using encrypted tunnels, protecting sensitive data from interception.
+2. Cost savings - instead of expensive leased private lines between offices, organisations can use the public Internet with VPN encryption, significantly reducing WAN costs.</div></div>
+  </div>
+</div>
+
+</main>
+</div>
+<script>
+const chapters=[
+{id:1,tag:"LU1",title:"Overview of Business Information Systems",
+overview:"Covers data vs information vs knowledge, the system model (Input-Process-Output-Feedback-Control), IS components, BIS resources, computer-based IS (CBIS) advantages/disadvantages, the three management levels, and Porter's three competitive strategies and Five Forces model.",
+notes:[
+{h:"Data, Information & Knowledge",t:"Data is raw, unprocessed facts — meaningless without context (e.g. the number 450). Information is data processed and given context to support decision-making (e.g. 'March sales: R450 000'). Knowledge combines experience and information for deeper understanding. In exams, always give clear examples and distinguish all three — many students confuse data and information."},
+{h:"The System Model: How IS Works",t:"A system takes inputs, transforms them through a process, and produces outputs. The feedback mechanism monitors output performance and reports it back. The control mechanism uses that feedback to adjust the process or input when needed. This model applies to a POS terminal, a bank's IS, and even your own studying — input (reading), process (understanding), output (exam answers)."},
+{h:"BIS Resources & Strategic Advantage",t:"All BIS require five types of resources: People, Hardware, Software, Communications, and Data. Porter's three strategies give IT its strategic purpose — Cost Leadership (lower prices via efficiency), Differentiation (unique offerings), and Focus (niche markets). Porter's Five Forces (Buyer Power, Supplier Power, Threat of Substitutes, Threat of New Entrants, Rivalry) help analyse where threats and opportunities lie in any competitive market."},
+{h:"Three Levels of Management",t:"Strategic level (senior management) uses EIS and DSS for long-term unstructured decisions. Tactical level (middle management) uses MIS/IRS and DSS for medium-term semi-structured planning. Operational level (supervisors and workers) uses TPS and OAS for routine day-to-day structured transactions. Understanding which IS serves which level is a common exam question."}
+],
+concepts:[
+{t:"Data",d:"Raw, unprocessed facts. Do not support decision-making on their own. Example: the number 450 in a cell."},
+{t:"Information",d:"Data processed and given context to support decision-making. Example: 'Total March sales: R450 000'."},
+{t:"Knowledge",d:"Combined result of experience and information. Enables deeper understanding relevant to a specific business situation."},
+{t:"System",d:"A collection of interrelated components working towards a collective goal. Functions: Input → Process → Output, plus Feedback and Control."},
+{t:"Information System (IS)",d:"A set of components that collect, process, store, and distribute data/information to support management. Must perform all 5 system functions."},
+{t:"IS Components (4)",d:"(1) Data — input; (2) Databases — organised storage; (3) Processes — transform data into reports; (4) Information — output after processing."},
+{t:"BIS Resources (5)",d:"People · Hardware · Software · Communications · Data resources. All five must be present to support a BIS."},
+{t:"CBIS (Computer-Based IS)",d:"IS using IT to create management information. Types: TPS, OAS, MIS, DSS, EIS. Advantages: speed, reliability, programmability. Disadvantages: no judgement, no improvisation, no innovation, cannot process qualitative info."},
+{t:"Management Levels (3)",d:"Strategic (top) — unstructured long-term decisions, EIS/DSS. Tactical (middle) — semi-structured planning, MIS/IRS/DSS. Operational (bottom) — structured routine transactions, TPS/OAS."},
+{t:"Cost Leadership Strategy",d:"Reduces overall cost of products/services. IT supports by reducing physical resources, energy-efficient technology, social media advertising to increase volume."},
+{t:"Differentiation Strategy",d:"Creates a distinct difference from competitors. IT builds unique user experiences. Example: Oscar Health Insurance's customisable medical aid platform."},
+{t:"Focus Strategy",d:"Concentrates on a specific market segment. Example: Apple markets iPhones to consumers, Macs to creative professionals."},
+{t:"Porter's Five Forces",d:"Buyer Power · Supplier Power · Threat of Substitute Products · Threat of New Entrants · Rivalry Among Competitors. Used to analyse competitive position."}
+],
+tip:"'Identify 5 BIS resources', 'describe the 3 management levels + which IS serves each', 'explain Porter's 3 strategies with examples', and 'describe Porter's Five Forces' are the most common LU1 exam questions. Know all of them."},
+
+{id:2,tag:"LU2",title:"Enterprise & Functional Business IS",
+overview:"Covers enterprise system types (ERP, CRM, SCM, SRM), their modules, benefits, and disadvantages, plus operational IS (TPS, OAS, Process Control), management IS (DSS, IRS, EIS), and functional IS (HRIS, LIS, MFIS, FIS).",
+notes:[
+{h:"Enterprise Systems: The Big Picture",t:"Enterprise systems integrate the entire organisation — not just one department. ERP is the internal backbone covering production, finance, HR, and distribution. CRM manages customer-facing processes. SCM handles goods flow from supplier through the organisation to customers. SRM manages supplier relationships. The KEY feature is a centralised database shared by all departments, eliminating data silos and duplication."},
+{h:"The IS Hierarchy: Operational → Tactical → Strategic",t:"TPS sits at the operational level handling routine transactions. IRS/MIS sits above TPS — it pulls TPS data to generate management reports (periodic and exception). DSS supports both tactical and strategic managers with ad-hoc queries and models. EIS sits at the top, giving executives a strategic overview with drill-down capability. Remember: data flows upward from TPS, and decisions flow downward."},
+{h:"Functional Information Systems",t:"Different departments need tailored IS. HRIS helps HR select candidates, schedule staff, predict staffing needs, and generate demographic reports. LIS optimises delivery routes, schedules, and transport modes. MFIS reduces factory costs and improves quality by supporting ordering, pricing, and space utilisation decisions. FIS manages budgets, cash flow, capital investment risk, and portfolio structures."}
+],
+concepts:[
+{t:"Enterprise Systems (4 types)",d:"ERP (Enterprise Resource Planning) · CRM (Customer Relationship Management) · SCM (Supply Chain Management) · SRM (Supplier Relationship Management)."},
+{t:"ERP",d:"Manages production, distribution, sales, finance, and HR internally. The core enterprise system. Expandable to include CRM, SCM, and SRM modules."},
+{t:"ERP Modules",d:"HR · Finance · Manufacturing · Sales · Distribution · Procurement · Product Development. Example systems: SAP, Microsoft Dynamics."},
+{t:"CRM",d:"Database-centred; manages marketing, sales, and customer service. Applications: customer data collection, customer data analysis, salesforce automation. e-CRM = web-based CRM access."},
+{t:"SCM",d:"Manages material flow from raw material suppliers through the organisation to end customers. Covers transportation, warehousing, and retail distribution."},
+{t:"SRM",d:"Manages procurement, inbound logistics, transportation, warehousing, and collaboration with suppliers."},
+{t:"ES Benefits",d:"Integrated processes and data · Better decision-making via module integration · Single-supplier support simplification · Adoption of best-practice solutions."},
+{t:"ES Disadvantages",d:"High implementation and customisation costs · Expensive training and organisational change · Standardised blueprints can reduce competitive advantage."},
+{t:"TPS",d:"Transaction Processing System — day-to-day operational transactions. High volume, structured, routine. Operational level. Example: POS system."},
+{t:"OAS",d:"Office Automation System — coordinates tasks of workers; connects work across levels and departments; links organisation to external environment."},
+{t:"Process Control System",d:"Monitors and controls physical processes in real time. Example: temperature control systems in manufacturing plants."},
+{t:"DSS",d:"Decision Support System — aids tactical/strategic decisions with models and ad-hoc queries. Created by end-users; department-specific; NOT routine reporting. 4 objectives: support semi-structured decisions, all management levels, all decision stages, user-friendly."},
+{t:"IRS",d:"Information Reporting System — generates pre-defined reports. Periodic reports (regular intervals: monthly financials, weekly sales) and Exception reports (when thresholds are breached)."},
+{t:"EIS",d:"Executive IS — platform for senior managers for strategic direction. Features: summary info, drill-down capability, analysis tools, integrates multiple sources, user-friendly for non-technical executives."},
+{t:"HRIS",d:"Assists with selecting candidates, scheduling/assessing employees, predicting staffing needs, generating demographic reports."},
+{t:"LIS",d:"Reduces logistics costs. Supports routing, delivery schedules, transport modes, budgeting, and shipment planning."},
+{t:"MFIS",d:"Reduces manufacturing costs and improves quality. Supports ordering, product cost calculations, space utilisation, price change decisions."},
+{t:"FIS",d:"Provides timely financial information. Supports budget allocations, capital investment risk, cost trend monitoring, cash flow, and portfolio structures."}
+],
+tip:"Know ALL 4 enterprise system types and their distinct roles. Know the 3 management IS types: DSS (ad-hoc/tactical), IRS (routine reports with periodic + exception), EIS (strategic/senior managers). '5 features of EIS', the difference between TPS and MIS/IRS, and CRM applications are very commonly tested."},
+
+{id:3,tag:"LU3",title:"The Machine Behind Computing",
+overview:"Covers computer system components, CPU structure, the three computer capabilities, performance factors, memory hierarchy, storage types, computer classes, input and output device categories, OS vs application software, programming language generations (1GL–5GL), and cloud computing.",
+notes:[
+{h:"Computer Hardware: The Core Components",t:"Every computer has 5 core components: input devices (keyboard, mouse, scanner), main memory/RAM (volatile, temporary), CPU (ALU + Control Unit), secondary storage (HDD, SSD — permanent), and output devices (monitor, printer). The CPU is the brain: the ALU does all calculations and logical comparisons, the Control Unit directs data flow by managing machine cycle stages (fetch-decode-execute-store) using microcode. Data path: Input → RAM → CPU → Output or Secondary Storage."},
+{h:"Memory Hierarchy & Performance",t:"Memory is organised in a hierarchy from fastest/smallest to slowest/largest: Registers (inside CPU, fastest) → Cache memory (between CPU and RAM, very fast) → RAM/Main memory (volatile, fast) → Secondary storage (HDD/SSD, slower but permanent). More RAM and faster clock speed (GHz) directly improve performance. Bus width affects how much data moves per cycle. More processor cores enable parallel processing."},
+{h:"Software & Programming Languages",t:"Operating system software (Windows, Linux, Android) is the foundation — it manages all hardware and software resources and acts as the interface between user and hardware. Application software (Word, Chrome, Photoshop) runs on top of the OS for specific tasks. Programming languages evolved through 5 generations: machine code (1GL) → assembly (2GL) → high-level languages like Python and Java (3GL) → SQL and MATLAB (4GL) → AI/natural language systems like Prolog (5GL)."}
+],
+concepts:[
+{t:"Computer",d:"A machine that accepts data as input, processes it using pre-written instructions, and generates information as output."},
+{t:"CPU Components",d:"ALU (Arithmetic Logic Unit) — arithmetic operations and logical comparisons. Control Unit — instructs which device to read from/send to; manages machine cycle stages via microcode."},
+{t:"Computer System Components (5)",d:"Input devices · Main memory (RAM) · CPU · Secondary storage · Output devices. Also: motherboard, buses, adapter cards, ports."},
+{t:"Three Computer Capabilities",d:"Speed (millisecond to picosecond level) · Accuracy (4.02 ≠ 4.03 to a computer) · Storage and Retrieval (vast, perfect memory)."},
+{t:"Multiprocessing",d:"System using more than one processor. Dual-core=2 · Quad-core=4 · Hexa-core=6 · Octa-core=8. More cores = more parallel processing speed."},
+{t:"Clock Speed",d:"Rate of CPU electronic pulses. Measured in MHz or GHz. Higher = faster instruction execution. AMD Bulldozer record: 8.429 GHz."},
+{t:"Memory Hierarchy",d:"Registers (fastest, inside CPU) → Cache memory (L1/L2/L3, very fast) → RAM (main memory, volatile) → Secondary storage (HDD/SSD, permanent, slowest)."},
+{t:"RAM vs ROM",d:"RAM — volatile, temporary primary memory (lost when power off). ROM — non-volatile, permanent, holds BIOS/firmware, cannot be easily modified."},
+{t:"Storage Types",d:"HDD (magnetic spinning disk, slower) · SSD (flash/electronic, faster) · Optical disc (CD/DVD) · USB flash drive · Magnetic tape (sequential backup only)."},
+{t:"SAN",d:"Storage Area Network — dedicated high-speed network for storage across departments and branches. Providers: IBM, Hitachi."},
+{t:"Cloud Storage (5 characteristics)",d:"On-demand self-service · Broad network access · Resource pooling · Rapid elasticity · Measured service. Providers: Amazon AWS Glacier, Google Cloud, Microsoft Azure."},
+{t:"Computer Classes (6)",d:"Supercomputer (FLOPS, research) → Mainframe (banking/govt) → Minicomputer/Server (network management) → Personal Computer (home/office) → Notebook/Laptop (portable) → Subnotebook (smallest, no optical drive)."},
+{t:"Input Device Categories",d:"Manual input: keyboard, mouse, joystick, touchscreen. Automated input: barcode reader, scanner, digital camera, microphone, biometric reader."},
+{t:"Output Device Types",d:"Monitor/VDU (visual) · Printers: impact (dot matrix — print through ribbon, noisy, multi-copy) and non-impact (laser — fast, quality; inkjet — colour, cheaper) · Speakers · Projector · Plotter."},
+{t:"OS Software",d:"Manages hardware/software resources; interface between user and hardware. Examples: Windows, macOS, Linux, Android, iOS."},
+{t:"Application Software",d:"Specific user-task software running on top of OS. Examples: MS Word, Excel, Chrome, Photoshop."},
+{t:"Programming Language Generations",d:"1GL — Machine code (binary 0s and 1s) · 2GL — Assembly language (mnemonics, e.g. MOV AX,1) · 3GL — High-level (Java, Python, C++) · 4GL — Very high-level, near natural language (SQL, MATLAB) · 5GL — AI/natural language (Prolog, LISP)."},
+{t:"Computer Trends",d:"Thinner and lighter devices · Faster memory and storage · Widespread wireless connectivity · Gesture computing · Voice recognition · Wearable computing."}
+],
+tip:"Know the 5 components of a computer system, CPU parts (ALU + Control Unit), memory hierarchy (Registers → Cache → RAM → Secondary Storage), 6 computer classes, 5 cloud characteristics, OS vs application software differences, and ALL 5 programming language generations with examples. Impact vs non-impact printers is a common exam comparison."},
+
+{id:4,tag:"LU4",title:"Database Systems and Analytics",
+overview:"Covers databases, DBMS 5 components, data hierarchy, access methods, relational data model, primary and foreign keys, normalisation (1NF–3NF), database advantages, data warehouses, data marts, the three analytics types (descriptive/predictive/prescriptive), Big Data 4 Vs, and Big Data tools.",
+notes:[
+{h:"Why Databases?",t:"Databases offer major business advantages over flat files and spreadsheets: multi-user simultaneous access, distributed access across departments, high-speed retrieval from large volumes, data quality via validation checks, security via access controls, and space efficiency through normalisation. A well-designed database is the foundation of every IS in the organisation — CRM, ERP, EIS all rely on database technology."},
+{h:"DBMS: All 5 Components",t:"The Database Engine is the core — it processes all storage and retrieval. Data Definition defines structure using DDL and maintains the data dictionary. Data Manipulation adds/deletes/modifies/retrieves data using SQL (SELECT name FROM employee) or QBE. Application Generation creates user-friendly screens for non-technical users. Data Administration handles backup, security, and CRUD privileges — managed by the DBA (Database Administrator). Know all five by name and function."},
+{h:"From Database to Big Data",t:"Data warehouses store organisation-wide historical data for strategic analysis. Data marts are smaller departmental subsets of warehouses. Analytics interprets this data: descriptive (what happened), predictive (what might happen), prescriptive (what should we do). Big Data extends this further — the 4 Vs (Volume, Variety, Velocity, Veracity) define data too large, fast, or varied for traditional databases. Normalisation (1NF, 2NF, 3NF) removes data redundancy and dependency in database design."}
+],
+concepts:[
+{t:"Database",d:"A collection of related information stored in an organised way so that specific items can be selected and retrieved quickly."},
+{t:"DBMS (5 components)",d:"Database Engine · Data Definition (DDL) · Data Manipulation (SQL/QBE) · Application Generation · Data Administration (DBA)."},
+{t:"Data Hierarchy",d:"Bit → Character/Byte → Field → Record → File → Database. Each level groups the one below into a meaningful unit."},
+{t:"Sequential Access",d:"Records accessed in entry order. Slow for large datasets. Must read records 1–8 to reach record 9. Used for backup data on magnetic tape."},
+{t:"Random Access",d:"Records accessed in any order regardless of location. Faster than sequential. Used with magnetic disks."},
+{t:"ISAM",d:"Indexed Sequential Access Method — combines sequential and random. Creates an index entry with address for each record for direct retrieval."},
+{t:"Database Engine",d:"Heart of DBMS. Supports storage, manipulation, and retrieval of data by interacting with all other DBMS components."},
+{t:"DDL",d:"Data Definition Language — used to define and describe database structure, field properties, primary keys, and data relationships."},
+{t:"SQL",d:"Structured Query Language — adds, deletes, modifies, retrieves records. Example: SELECT name, surname FROM employee WHERE dept = 'Sales'"},
+{t:"CRUD",d:"Create, Read, Update, Delete — the four basic database operations managed by the Data Administration component."},
+{t:"Relational Model",d:"Stores data in 2D tables. Rows = records/tuples. Columns = fields/attributes. Tables linked by primary and foreign keys."},
+{t:"Primary Key",d:"Unique identifier for each record in a table. Cannot be null or duplicated. Example: Student No. in a STUDENT table."},
+{t:"Foreign Key",d:"A field in one table that is the primary key in another table. Creates relationships between tables. Example: Customer_ID in an ORDERS table linking to the CUSTOMER table."},
+{t:"Normalisation",d:"Process of organising database tables to reduce data redundancy and improve integrity. 1NF: eliminate repeating groups. 2NF: remove partial dependencies. 3NF: remove transitive dependencies."},
+{t:"Database Advantages",d:"Multi-user access · Distributed access · High-speed processing of large volumes · Data quality validation · Security controls · Space efficiency via normalisation."},
+{t:"Data Warehouse",d:"Large, organisation-wide repository storing historical data from multiple sources. Used for strategic business intelligence and trend analysis."},
+{t:"Data Mart",d:"A SUBSET of a data warehouse. Smaller, focused on one department or function (e.g. Sales data mart, HR data mart)."},
+{t:"Analytics Types",d:"Descriptive — 'What happened?' (historical analysis) · Predictive — 'What might happen?' (statistical models) · Prescriptive — 'What should we do?' (recommended actions)."},
+{t:"Big Data 4 Vs",d:"Volume (enormous amounts) · Variety (structured/semi-structured/unstructured) · Velocity (speed of collection/processing) · Veracity (messiness and quality challenges)."},
+{t:"Big Data Risks",d:"Discrimination from biased findings · Privacy breaches · Loss of anonymity · Limited legal protection against misuse."},
+{t:"Big Data Tools",d:"Apache Hadoop · NoSQL · Cassandra · SAP Big Data Analytics · Tableau · SAS Big Data Analytics."}
+],
+tip:"Know ALL 5 DBMS components by name and function. Know the full data hierarchy (Bit→Database). Know all 3 access methods (sequential/random/ISAM). Know the difference between data warehouse and data mart. Know the 3 analytics types with examples. Know the Big Data 4 Vs. A basic SQL SELECT statement and identifying primary/foreign keys in a table may be asked."},
+
+{id:5,tag:"LU5",title:"Networks, Telecommunications & Internet",
+overview:"Covers data communication systems, computer network types (PAN/LAN/MAN/WAN), OSI 7-layer model, network topologies (star/ring/bus/mesh), transmission media (twisted pair/coaxial/fibre optic/microwave/satellite), distributed processing, wireless technologies, VPN, cloud computing 5 characteristics, Internet and WWW, and wireless security threats.",
+notes:[
+{h:"Networks: Types & Business Value",t:"Networks reduce transaction costs, enable resource sharing, support remote work and virtual organisations, and connect organisations globally. PAN (Bluetooth/IEEE 802.15) connects personal devices over short range. LAN (office/building) is fast and private. MAN covers a city. WAN spans national/international boundaries — the Internet is the largest WAN. A NIC (Network Interface Card) is required hardware for any device to join a network. A NOS (Network Operating System) manages the network."},
+{h:"The OSI Model: All 7 Layers",t:"The OSI (Open Systems Interconnection) model was developed by ISO to standardise how computers communicate regardless of manufacturer. Bottom to top: Physical (bits) → Data Link (link control) → Network (routing) → Transport (error-free delivery) → Session (sessions) → Presentation (formatting) → Application (user tasks). Mnemonic top-to-bottom: 'All People Seem To Need Data Processing'. Know each layer's name AND its specific function — this is a guaranteed exam question."},
+{h:"Transmission Media",t:"Wired media: Twisted pair cable (cheap, common in LAN, susceptible to interference), Coaxial cable (better shielding, used in older networks and cable TV), Fibre optic (fastest, immune to EMI, expensive, transmits light pulses). Wireless media: Microwave (high-frequency radio waves, requires line of sight between towers), Satellite (covers vast areas, higher latency, used for remote areas and broadcasting). The choice depends on speed requirements, distance, cost, and environment."},
+{h:"Security & Internet",t:"Wireless security threats include unauthorised access (war driving), eavesdropping, denial of service attacks, and man-in-the-middle attacks. Countermeasures: WPA2/WPA3 encryption, MAC address filtering, VPN, firewalls, and strong passwords. The Internet is a global network of interconnected networks. The World Wide Web (WWW) is a service that runs ON the Internet using HTTP protocol and HTML. DNS (Domain Name System) translates domain names (www.iie.ac.za) into IP addresses. ISPs (Internet Service Providers) provide access to the Internet."}
+],
+concepts:[
+{t:"Data Communication System",d:"Facilitates efficient data transfer between locations. Enables virtual organisations, remote work, and just-in-time delivery."},
+{t:"Computer Network",d:"A communications system linking two or more computers and peripheral devices to enable data transfer."},
+{t:"PAN",d:"Personal Area Network — Bluetooth (IEEE 802.15). Short range (~10m). Connects tablets, laptops, printers, headphones, keyboards."},
+{t:"LAN",d:"Local Area Network — small area (office/building) via cables or wireless. Fast, private, cost-efficient. Peer-to-peer in small businesses."},
+{t:"MAN",d:"Metropolitan Area Network — covers a city or metropolitan area. Larger than LAN, smaller than WAN."},
+{t:"WAN",d:"Wide Area Network — spans national/international boundaries. Uses satellite, microwave, fibre optics. The Internet is the largest WAN."},
+{t:"NIC",d:"Network Interface Card — hardware required to connect a computer to a network. Operates at the Data Link Layer (Layer 2) of the OSI model."},
+{t:"NOS",d:"Network Operating System — manages the network. Examples: Windows Server, Novell Enterprise Server."},
+{t:"OSI 7 Layers",d:"1. Physical (bits) · 2. Data Link (link control) · 3. Network (routing) · 4. Transport (error-free delivery) · 5. Session (sessions) · 6. Presentation (formatting) · 7. Application (user tasks)."},
+{t:"Star Topology",d:"All devices connect to a central hub/switch. Easy to manage, easy to add devices. Central hub failure = entire network down."},
+{t:"Ring Topology",d:"Devices connected in a circular loop. One-directional data flow reduces collisions. One device failure can disrupt the entire ring."},
+{t:"Bus Topology",d:"All devices share one common backbone cable. Cheap and simple. Main cable failure = entire network down."},
+{t:"Mesh Topology",d:"Every device connects to every other device. Highest fault tolerance — multiple paths for data. Most expensive and complex to manage."},
+{t:"Twisted Pair Cable",d:"Two insulated copper wires twisted together. Cheap, widely used in LANs (Cat5e, Cat6). Susceptible to electromagnetic interference."},
+{t:"Coaxial Cable",d:"Central copper conductor with insulation and shielding. Better noise resistance than twisted pair. Used in cable TV and older networks."},
+{t:"Fibre Optic Cable",d:"Transmits data as pulses of light through glass/plastic fibres. Fastest transmission. Immune to electromagnetic interference. Most expensive."},
+{t:"Microwave Transmission",d:"Wireless high-frequency radio waves. Requires line of sight between towers. Used for long-distance point-to-point links."},
+{t:"Satellite Transmission",d:"Signals sent to orbiting satellite and back. Covers vast geographic areas. Higher latency. Used for remote areas and global broadcasting."},
+{t:"VPN",d:"Virtual Private Network — extends a private network securely over the public Internet using encryption. Allows secure remote access to organisational resources."},
+{t:"Distributed Processing",d:"Processing distributed across multiple nodes. Benefits: modular, high fault tolerance, overcomes distance, resource sharing. Drawbacks: security challenges, incompatibility risks, management complexity."},
+{t:"Cloud Computing (5)",d:"On-demand self-service · Broad network access · Resource pooling · Rapid elasticity · Measured service. Providers: AWS, Google Cloud, Azure."},
+{t:"Internet",d:"The world's largest WAN — a global network of interconnected networks. Access provided by ISPs (Internet Service Providers)."},
+{t:"WWW",d:"World Wide Web — a service that runs ON the Internet using HTTP protocol. Web pages written in HTML. DNS translates domain names to IP addresses."},
+{t:"Wireless Security Threats",d:"Unauthorised access (war driving) · Eavesdropping · Denial of service (DoS) attacks · Man-in-the-middle attacks."},
+{t:"Wireless Security Countermeasures",d:"WPA2/WPA3 encryption · MAC address filtering · VPN tunnelling · Firewalls · Strong passwords · Disabling SSID broadcast."},
+{t:"Network Benefits",d:"Lower transaction costs · Improved resource/info sharing · Supports virtual organisations · Just-in-time delivery · Communication with customers/suppliers."},
+{t:"Network Disadvantages",d:"Over-reliance for mission-critical apps · High setup and admin costs · Security risks · Incompatibility between equipment."}
+],
+tip:"Know ALL 7 OSI layers (names + functions), ALL 4 network types (PAN/LAN/MAN/WAN), ALL 4 topologies with advantages AND disadvantages, ALL 5 transmission media types with one characteristic each, 5 cloud characteristics, VPN definition and benefits, and wireless security threats + countermeasures. This unit has the most exam content — make OSI layer flashcards."}
+];
+
+const glossaryTerms=[
+{t:"Data",d:"Raw, unprocessed facts; do not support decision-making on their own."},
+{t:"Information",d:"Processed, contextualised data that supports decision-making."},
+{t:"Knowledge",d:"Combined result of experience and information; enables deep business understanding."},
+{t:"BIS",d:"Business Information System — interconnected components that process, store, and control data to generate information for organisational activities."},
+{t:"System",d:"A collection of interrelated components working towards a collective goal. Functions: Input, Process, Output, Feedback, Control."},
+{t:"CBIS",d:"Computer-Based Information System — IS using IT to create management information. Includes TPS, OAS, MIS, DSS, EIS."},
+{t:"Management Levels",d:"Strategic (top — EIS/DSS) · Tactical (middle — MIS/IRS/DSS) · Operational (bottom — TPS/OAS)."},
+{t:"Enterprise System",d:"Supports business processes across ALL functional boundaries using a centralised database and Internet technology."},
+{t:"ERP",d:"Enterprise Resource Planning — manages production, finance, HR, and distribution internally. Core enterprise system."},
+{t:"CRM",d:"Customer Relationship Management — manages marketing, sales, and customer service via a customer database."},
+{t:"SCM",d:"Supply Chain Management — manages material flow from supplier through organisation to customer."},
+{t:"SRM",d:"Supplier Relationship Management — manages procurement, inbound logistics, and supplier relationships."},
+{t:"TPS",d:"Transaction Processing System — handles day-to-day operational transactions. High volume, structured, routine. Operational level."},
+{t:"OAS",d:"Office Automation System — coordinates worker tasks; links organisation to external environment."},
+{t:"DSS",d:"Decision Support System — aids tactical/strategic decisions with ad-hoc queries and models. Created by end-users."},
+{t:"IRS",d:"Information Reporting System — generates periodic reports (regular intervals) and exception reports (threshold breaches)."},
+{t:"EIS",d:"Executive Information System — strategic analysis platform for senior managers with drill-down, summary info, and analysis tools."},
+{t:"HRIS",d:"Human Resource IS — supports hiring, scheduling, staffing needs, and demographic reporting."},
+{t:"CPU",d:"Central Processing Unit — contains ALU (arithmetic/logic) and Control Unit (manages data flow). The brain of the computer."},
+{t:"ALU",d:"Arithmetic Logic Unit — performs arithmetic operations and logical comparisons inside the CPU."},
+{t:"RAM",d:"Random Access Memory — volatile primary memory. Temporarily holds data and instructions for the CPU."},
+{t:"ROM",d:"Read-Only Memory — non-volatile. Permanently stores BIOS/firmware."},
+{t:"Memory Hierarchy",d:"Registers → Cache → RAM → Secondary Storage. Fastest to slowest, smallest to largest."},
+{t:"Programming Generations",d:"1GL (machine code) → 2GL (assembly) → 3GL (high-level: Java, Python) → 4GL (SQL, MATLAB) → 5GL (AI: Prolog)."},
+{t:"DBMS",d:"Database Management System — software for creating, storing, maintaining, and accessing a database. Has 5 components."},
+{t:"SQL",d:"Structured Query Language — used to add, modify, delete, and retrieve data. Example: SELECT name FROM employee"},
+{t:"DDL",d:"Data Definition Language — defines database structure, field properties, and primary keys."},
+{t:"CRUD",d:"Create, Read, Update, Delete — the four basic database operations."},
+{t:"Primary Key",d:"Unique identifier for each record in a table. Cannot be null or duplicated."},
+{t:"Foreign Key",d:"A field in one table that is the primary key in another table; used to link related tables."},
+{t:"Normalisation",d:"Organises database tables to reduce redundancy. 1NF → 2NF → 3NF."},
+{t:"Data Warehouse",d:"Organisation-wide repository of historical data from multiple sources. Used for business intelligence."},
+{t:"Data Mart",d:"A subset of a data warehouse focused on a specific department or function."},
+{t:"Big Data 4 Vs",d:"Volume · Variety · Velocity · Veracity."},
+{t:"Analytics Types",d:"Descriptive (what happened) · Predictive (what might happen) · Prescriptive (what should we do)."},
+{t:"OSI Model",d:"7-layer architecture (Physical to Application) standardising network communication. Developed by ISO."},
+{t:"LAN",d:"Local Area Network — connects devices in a small geographic area."},
+{t:"WAN",d:"Wide Area Network — spans national/international boundaries. The Internet is the largest WAN."},
+{t:"NIC",d:"Network Interface Card — hardware required to connect a computer to a network. Operates at OSI Data Link Layer."},
+{t:"VPN",d:"Virtual Private Network — secure encrypted connection over a public network."},
+{t:"Cloud Computing",d:"Remote IT services with 5 characteristics: on-demand, broad access, resource pooling, rapid elasticity, measured service."},
+{t:"Fibre Optic",d:"Fastest transmission media — transmits data as light pulses; immune to electromagnetic interference."},
+{t:"Twisted Pair",d:"Most common LAN cable — two insulated copper wires twisted together; cheap but susceptible to interference."},
+{t:"DNS",d:"Domain Name System — translates human-readable domain names (e.g. iie.ac.za) into IP addresses."},
+{t:"ISP",d:"Internet Service Provider — provides access to the Internet to individuals and organisations."},
+{t:"Porter's Five Forces",d:"Buyer Power · Supplier Power · Threat of Substitutes · Threat of New Entrants · Rivalry Among Competitors."},
+{t:"SAN",d:"Storage Area Network — dedicated high-speed storage network allowing data exchange across departments."},
+{t:"DBA",d:"Database Administrator — responsible for designing, setting up, and maintaining a database; manages Data Administration component."}
+];
+
+const allQ=[
+{ch:1,q:"What is the primary difference between data and information?",opts:["Data is processed; information is raw","Information is processed data that supports decision-making; data alone does not","Data is stored in databases; information is not","Information is collected first; data comes later"],ans:1,exp:"Information is data processed and given context to support decision-making. Raw data alone (e.g. the number 450) does not help a manager make a decision."},
+{ch:1,q:"Which is NOT one of the five basic BIS resources?",opts:["People resources","Hardware resources","Financial resources","Data resources"],ans:2,exp:"The 5 BIS resources are: People, Hardware, Software, Communications, and Data. Financial resources is not in this list."},
+{ch:1,q:"A generic information system performs how many functions?",opts:["3","4","5","6"],ans:2,exp:"A generic system performs 5 functions: Input, Processing, Output, Feedback, and Control."},
+{ch:1,q:"Apple markets iPhones primarily to consumers. Which Porter strategy is this?",opts:["Cost Leadership","Differentiation","Focus","Supply Chain Management"],ans:2,exp:"Apple uses the Focus strategy — concentrating on a specific market segment rather than the entire market."},
+{ch:1,q:"Buyer power is HIGH when:",opts:["Customers have few choices","Customers have many products to choose from","Supplier power is also high","Prices are very low"],ans:1,exp:"Buyer power is HIGH when customers have MANY options. Organisations reduce buyer power through differentiation and loyalty."},
+{ch:1,q:"An organisation emailing statements instead of printing them is applying which strategy?",opts:["Focus","Differentiation","Cost Leadership","SRM"],ans:2,exp:"By reducing physical resources, the organisation applies Cost Leadership — lowering operational costs to offer lower prices."},
+{ch:1,q:"Which level of management uses EIS for long-term strategic decisions?",opts:["Operational level","Tactical level","Strategic level","Executive level"],ans:2,exp:"The Strategic level (top/senior management) uses EIS and DSS for long-term, unstructured strategic decisions."},
+{ch:1,q:"The feedback mechanism in a system is best described as:",opts:["The process that turns inputs into outputs","Information on performance used to adjust the system's behaviour","The physical hardware components","The control unit in the CPU"],ans:1,exp:"The feedback mechanism provides information on system performance, which the control mechanism uses to adjust behaviour when needed."},
+{ch:2,q:"Which enterprise system type manages customer-facing marketing and sales?",opts:["ERP","SCM","CRM","SRM"],ans:2,exp:"CRM (Customer Relationship Management) manages marketing, sales, and customer service centred on a customer database."},
+{ch:2,q:"What is the KEY characteristic that distinguishes enterprise systems?",opts:["They work within a single department","They use a centralised database across the entire organisation","They do not require Internet connectivity","They only support financial processes"],ans:1,exp:"Enterprise systems feature a centralised database allowing seamless data integration across ALL departments — their defining characteristic."},
+{ch:2,q:"Which management IS is used for strategic decision-making by senior executives?",opts:["TPS","IRS","DSS","EIS"],ans:3,exp:"EIS (Executive Information Systems) provide senior managers with strategic analysis, drill-down capability, and trend monitoring."},
+{ch:2,q:"An 'exception report' is automatically generated when:",opts:["A manager requests it manually","Performance thresholds are breached","The monthly period ends","Senior management logs in"],ans:1,exp:"Exception reports are generated automatically when performance thresholds are breached. Periodic reports are the regular monthly/weekly reports."},
+{ch:2,q:"Which functional IS helps improve routing and delivery schedules?",opts:["HRIS","FIS","LIS","MFIS"],ans:2,exp:"LIS (Logistics Information System) reduces logistics costs and supports routing, delivery schedules, transport modes, and shipment planning."},
+{ch:2,q:"DSS systems are typically:",opts:["Company-wide systems built by IT departments","Department-specific systems created by end-users for ad-hoc queries","Systems that only process routine transactions","Systems used exclusively by senior management"],ans:1,exp:"DSS are created by end-users, department-specific, and used for ad-hoc non-routine queries rather than routine reporting."},
+{ch:2,q:"Which is a DISADVANTAGE of enterprise systems?",opts:["Improved cross-department data sharing","Simplified support through a single supplier","Adapting to standardised blueprints can reduce competitive advantage","Increased organisational efficiency"],ans:2,exp:"Standardised ERP blueprints can reduce competitive advantage — organisations may lose unique processes when conforming to SAP's standard activities."},
+{ch:2,q:"The relationship between TPS and MIS is:",opts:["They are completely independent systems","MIS generates reports from data captured by TPS","TPS generates reports from MIS data","MIS replaces TPS once an organisation grows"],ans:1,exp:"MIS relies on data captured by the TPS to generate its management reports. They work together — TPS captures transactions, MIS reports on them."},
+{ch:3,q:"The ALU in a CPU is responsible for:",opts:["Storing program instructions permanently","Performing arithmetic operations and logical comparisons","Managing input and output devices","Connecting the CPU to main memory"],ans:1,exp:"The ALU (Arithmetic Logic Unit) performs arithmetic operations (add, subtract, multiply) and logical comparisons (greater than, equal to, less than)."},
+{ch:3,q:"Multiprocessing refers to:",opts:["A computer with multiple screens","A computer system using more than one processor","Software running multiple programs simultaneously","A computer running two operating systems"],ans:1,exp:"Multiprocessing is a system using more than one processor. Dual-core=2, Quad-core=4, Hexa-core=6, Octa-core=8. More cores = more parallel processing speed."},
+{ch:3,q:"Clock speed is measured in:",opts:["Bytes and kilobytes","FLOPS and petaflops","MHz and GHz","MIPS and FLOPS"],ans:2,exp:"Clock speed is measured in megahertz (MHz) or gigahertz (GHz) — the number of instruction cycles per second the CPU can execute."},
+{ch:3,q:"Which computer class is used for weather forecasting and nuclear research?",opts:["Personal Computer","Mainframe","Supercomputer","Minicomputer/Server"],ans:2,exp:"Supercomputers are the most powerful computers, designed for massive computational tasks. Speed is measured in FLOPS (petaflops). Example: IBM Blue Gene/L."},
+{ch:3,q:"RAM is classified as:",opts:["Secondary storage — permanent","Non-volatile permanent memory","Primary/main memory — volatile and temporary","Output memory"],ans:2,exp:"RAM is volatile primary memory — data is lost when power is off. It temporarily holds data and instructions for the CPU during processing."},
+{ch:3,q:"Which programming language generation uses binary code (0s and 1s)?",opts:["3GL","2GL","1GL","4GL"],ans:2,exp:"1GL (First Generation Language) is machine language — pure binary code (0s and 1s) directly executed by the CPU. No translation is needed."},
+{ch:3,q:"SQL and MATLAB are examples of which programming language generation?",opts:["1GL","2GL","3GL","4GL"],ans:3,exp:"SQL and MATLAB are 4GL (Fourth Generation Language) — very high-level languages that are closer to natural language, commonly used for database queries and mathematical computation."},
+{ch:3,q:"Which output device type uses a ribbon and is suitable for multi-copy printing?",opts:["Laser printer (non-impact)","Inkjet printer (non-impact)","Dot matrix printer (impact)","Plotter (non-impact)"],ans:2,exp:"Dot matrix printers are impact printers — they print by striking an ink ribbon against paper. They are noisy but suitable for multi-copy carbon forms. Laser and inkjet are non-impact."},
+{ch:4,q:"The correct data hierarchy from smallest to largest is:",opts:["Field->Character->Record->File->Database","Character->Field->Record->File->Database","Record->Field->Character->File->Database","Database->File->Record->Field->Character"],ans:1,exp:"Correct: Bit → Character/Byte → Field → Record → File → Database. Each level groups the one below into a meaningful unit."},
+{ch:4,q:"In a relational database, a ROW is known as a:",opts:["Field or attribute","Record or tuple","Table or relation","Column or domain"],ans:1,exp:"In a relational database, each ROW is a record (tuple). Each COLUMN is a field (attribute)."},
+{ch:4,q:"Which data access method reads records in the order they were entered?",opts:["Random access","ISAM","Sequential access","Direct access"],ans:2,exp:"Sequential access reads records in entry order. To reach record 9, records 1–8 must be read first. Used for backup data on magnetic tape."},
+{ch:4,q:"Which DBMS component handles backup, security, and CRUD privileges?",opts:["Database Engine","Data Definition","Data Manipulation","Data Administration"],ans:3,exp:"Data Administration handles backup/recovery, security, change management, and CRUD (Create, Read, Update, Delete) privileges. Managed by the DBA."},
+{ch:4,q:"A data mart is:",opts:["A large organisation-wide data repository","A subset of a data warehouse focused on one department","A type of database engine","A Big Data visualisation tool"],ans:1,exp:"A data mart is a SUBSET of a data warehouse — smaller, focused on a specific department or function like Sales or HR."},
+{ch:4,q:"Which SQL statement retrieves name and surname from a table called employee?",opts:["GET name, surname FROM employee","SELECT name, surname FROM employee","FETCH name, surname IN employee","RETRIEVE name, surname FROM employee"],ans:1,exp:"Correct SQL syntax: SELECT [columns] FROM [table]. Example: SELECT name, surname FROM employee"},
+{ch:4,q:"'Veracity' in Big Data refers to:",opts:["The enormous volume of data generated","The speed of data collection","The various formats of data","The messiness or quality issues of data"],ans:3,exp:"Veracity relates to the messiness of data — Twitter abbreviations, typos, speech patterns — representing data quality challenges in Big Data."},
+{ch:4,q:"Which type of analytics answers the question 'What should we do?'",opts:["Descriptive analytics","Predictive analytics","Prescriptive analytics","Diagnostic analytics"],ans:2,exp:"Prescriptive analytics recommends actions to take. Descriptive = what happened. Predictive = what might happen. Prescriptive = what should we do about it."},
+{ch:5,q:"Which OSI layer is responsible for ROUTING messages through the network?",opts:["Transport Layer","Data Link Layer","Network Layer","Session Layer"],ans:2,exp:"The Network Layer (Layer 3) routes messages through the network. Transport Layer ensures error-free delivery. Data Link Layer manages the communication link."},
+{ch:5,q:"A Personal Area Network (PAN) uses which technology?",opts:["Wi-Fi (IEEE 802.11)","Fibre optic cables","Bluetooth (IEEE 802.15)","Satellite transmissions"],ans:2,exp:"PAN uses Bluetooth (IEEE 802.15) to connect nearby personal devices like tablets, laptops, printers, and wireless peripherals over short distances."},
+{ch:5,q:"Which network type spans national or international boundaries?",opts:["LAN","MAN","PAN","WAN"],ans:3,exp:"WAN (Wide Area Network) spans national or international boundaries. The Internet is the most well-known WAN."},
+{ch:5,q:"The Physical Layer of the OSI model is concerned with:",opts:["Routing messages between networks","Formatting message packets","Transmitting raw binary data (bits) over a physical medium","Establishing communication sessions"],ans:2,exp:"The Physical Layer (Layer 1) transmits raw binary data (bits) over a physical medium — cables, wireless signals, or fibre optics."},
+{ch:5,q:"What hardware is required for a computer to connect to a network?",opts:["GPU (Graphics Processing Unit)","NIC (Network Interface Card)","PSU (Power Supply Unit)","UPS (Uninterruptible Power Supply)"],ans:1,exp:"A NIC (Network Interface Card) is required to connect a computer to a network. It operates at the Data Link Layer (Layer 2) of the OSI model."},
+{ch:5,q:"Which transmission medium is immune to electromagnetic interference and transmits data as light pulses?",opts:["Twisted pair cable","Coaxial cable","Fibre optic cable","Microwave transmission"],ans:2,exp:"Fibre optic cable transmits data as pulses of light through glass or plastic fibres. It is immune to electromagnetic interference and provides the fastest transmission speeds."},
+{ch:5,q:"Which is a DISADVANTAGE of computer networks?",opts:["Lower transaction costs","Improved information sharing","Over-reliance for mission-critical applications","Supports virtual organisations"],ans:2,exp:"Over-reliance on networks for mission-critical applications is a key disadvantage — if the network fails, critical business operations may be severely disrupted."},
+{ch:5,q:"In a star topology, what is the single point of failure?",opts:["Any one workstation on the network","The main backbone cable","The central hub or switch","The NIC in each device"],ans:2,exp:"In a star topology, all devices connect to a central hub/switch. If that central hub fails, the ENTIRE network goes down — it is the single point of failure."}
+];
+
+let selChapters=[],quizQs=[],quizIdx=0,quizScore=0,quizAnswered=false;
+
+function buildSidebar(){
+  document.getElementById('sidebarChaps').innerHTML=chapters.map(ch=>`<button class="ch-nav-btn" onclick="showSection('units');openChapter(${ch.id})">${ch.tag} \u2014 ${ch.title.split(' ').slice(0,3).join(' ')}</button>`).join('');
+}
+function buildGlossary(){
+  document.getElementById('glossaryList').innerHTML=glossaryTerms.map(t=>`<div class="concept-item"><strong>${t.t}</strong><p>${t.d}</p></div>`).join('');
+}
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const m={plan:0,units:1,glossary:2,test:3,paper:4};
+  document.querySelectorAll('.nav-btn')[m[id]].classList.add('active');
+  window.scrollTo(0,0);
+}
+function buildChGrid(){
+  document.getElementById('chGrid').innerHTML=chapters.map(ch=>`<div class="ch-card" onclick="openChapter(${ch.id})"><div class="ch-num">${ch.tag}</div><h3>${ch.title}</h3><p>${ch.concepts.length} key concepts</p></div>`).join('');
+}
+function openChapter(id){
+  const ch=chapters.find(c=>c.id===id);
+  const cHtml=ch.concepts.map(c=>`<div class="concept-item"><strong>${c.t}</strong><p>${c.d}</p></div>`).join('');
+  const nHtml=ch.notes.map(n=>`<div class="note-block"><strong>${n.h}:</strong> ${n.t}</div>`).join('');
+  let diag='';
+  if(id===1){diag=`<div class="detail-block"><h4>System Model Diagram</h4><div class="diagram-wrap"><div class="diagram-flow"><div class="d-box red">INPUT<br><span style="font-size:10px;font-weight:400">data,resources</span></div><div class="d-arrow">&rarr;</div><div class="d-box">PROCESS<br><span style="font-size:10px;font-weight:400">transform</span></div><div class="d-arrow">&rarr;</div><div class="d-box green">OUTPUT<br><span style="font-size:10px;font-weight:400">information</span></div></div><p style="text-align:center;font-size:11px;color:var(--muted);font-family:var(--font-code);margin-top:8px;">Feedback: Output &rarr; Feedback mechanism &rarr; Control mechanism &rarr; adjusts Input/Process</p></div></div>
+  <div class="detail-block"><h4>Three Management Levels</h4><div class="diagram-wrap"><div class="mgmt-levels"><div class="mgmt-level" style="background:rgba(0,201,255,.15);color:var(--accent);">STRATEGIC LEVEL &mdash; Senior Management &mdash; EIS / DSS</div><div class="mgmt-level" style="background:rgba(123,97,255,.15);color:var(--accent2);">TACTICAL LEVEL &mdash; Middle Management &mdash; MIS / IRS / DSS</div><div class="mgmt-level" style="background:rgba(0,229,160,.15);color:var(--accent6);">OPERATIONAL LEVEL &mdash; Supervisors / Workers &mdash; TPS / OAS</div></div></div></div>`;}
+  if(id===3){diag=`<div class="detail-block"><h4>Computer System Components</h4><div class="diagram-wrap"><div class="diagram-flow"><div class="d-box red">INPUT<br><span style="font-size:10px;font-weight:400">keyboard,mouse<br>scanner,mic</span></div><div class="d-arrow">&rarr;</div><div class="d-box blue">RAM<br><span style="font-size:10px;font-weight:400">Primary Memory<br>volatile</span></div><div class="d-arrow">&rarr;</div><div class="d-box">CPU<br><span style="font-size:10px;font-weight:400">ALU +<br>Control Unit</span></div><div class="d-arrow">&rarr;</div><div class="d-box green">OUTPUT<br><span style="font-size:10px;font-weight:400">monitor,printer<br>speakers</span></div></div><p style="font-size:11px;color:var(--muted);font-family:var(--font-code);margin-top:8px;text-align:center;">Secondary Storage (HDD/SSD) &harr; CPU for permanent read/write operations</p></div></div>
+  <div class="detail-block"><h4>Memory Hierarchy</h4><div class="diagram-wrap"><div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="d-box orange" style="width:260px;">REGISTERS &mdash; fastest, inside CPU</div><div class="d-arrow" style="transform:rotate(90deg);">&rarr;</div><div class="d-box" style="width:230px;">CACHE MEMORY &mdash; L1/L2/L3</div><div class="d-arrow" style="transform:rotate(90deg);">&rarr;</div><div class="d-box blue" style="width:200px;">RAM &mdash; main memory, volatile</div><div class="d-arrow" style="transform:rotate(90deg);">&rarr;</div><div class="d-box green" style="width:170px;">SECONDARY STORAGE &mdash; HDD/SSD</div></div><p style="font-size:11px;color:var(--muted);font-family:var(--font-code);margin-top:8px;text-align:center;">Top = fastest &amp; smallest &nbsp;|&nbsp; Bottom = slowest &amp; largest</p></div></div>
+  <div class="detail-block"><h4>Programming Language Generations</h4><table class="gen-table"><tr><th>Gen</th><th>Name</th><th>Description</th><th>Example</th></tr><tr><td>1GL</td><td>Machine Language</td><td>Binary code (0s and 1s). Directly executed by CPU. No translation needed.</td><td>01001000</td></tr><tr><td>2GL</td><td>Assembly Language</td><td>Uses symbolic names (mnemonics). Requires assembler to translate.</td><td>MOV AX, 1</td></tr><tr><td>3GL</td><td>High-Level Language</td><td>Human-readable. Requires compiler or interpreter. Most common today.</td><td>Java, Python, C, C++</td></tr><tr><td>4GL</td><td>Very High-Level</td><td>Closer to natural language. Used for database queries and scientific computing.</td><td>SQL, MATLAB, SAS</td></tr><tr><td>5GL</td><td>Natural / AI Language</td><td>Uses constraints to solve problems. Used in artificial intelligence applications.</td><td>Prolog, LISP</td></tr></table></div>`;}
+  if(id===4){diag=`<div class="detail-block"><h4>Data Hierarchy</h4><div class="diagram-wrap"><div style="display:flex;flex-direction:column;align-items:center;gap:5px;"><div class="d-box" style="width:260px;">DATABASE &mdash; collection of linked files</div><div class="d-arrow" style="transform:rotate(90deg);">&rarr;</div><div class="d-box" style="width:230px;">FILE &mdash; collection of related records</div><div class="d-arrow" style="transform:rotate(90deg);">&rarr;</div><div class="d-box" style="width:200px;">RECORD / TUPLE &mdash; one full row</div><div class="d-arrow" style="transform:rotate(90deg);">&rarr;</div><div class="d-box blue" style="width:170px;">FIELD / ATTRIBUTE &mdash; one column</div><div class="d-arrow" style="transform:rotate(90deg);">&rarr;</div><div class="d-box" style="width:140px;">CHARACTER / BYTE</div><div class="d-arrow" style="transform:rotate(90deg);">&rarr;</div><div class="d-box green" style="width:110px;">BIT &mdash; 0 or 1</div></div></div></div>
+  <div class="detail-block"><h4>Analytics Types</h4><div class="diagram-wrap"><div class="diagram-flow"><div class="d-box red">DESCRIPTIVE<br><span style="font-size:10px;font-weight:400">"What happened?"<br>Historical analysis</span></div><div class="d-arrow">&rarr;</div><div class="d-box orange">PREDICTIVE<br><span style="font-size:10px;font-weight:400">"What might happen?"<br>Statistical models</span></div><div class="d-arrow">&rarr;</div><div class="d-box green">PRESCRIPTIVE<br><span style="font-size:10px;font-weight:400">"What should we do?"<br>Recommended actions</span></div></div></div></div>`;}
+  if(id===5){diag=`<div class="detail-block"><h4>OSI Model &mdash; 7 Layers</h4><div class="diagram-wrap"><div class="osi-stack"><div class="osi-layer" style="background:rgba(0,201,255,.15);color:var(--accent);">7. Application &mdash; supports user tasks (email, file transfer, web browsing)</div><div class="osi-layer" style="background:rgba(123,97,255,.15);color:var(--accent2);">6. Presentation &mdash; formats message packets for compatibility</div><div class="osi-layer" style="background:rgba(192,132,252,.15);color:var(--accent5);">5. Session &mdash; establishes, manages and terminates sessions</div><div class="osi-layer" style="background:rgba(0,229,160,.15);color:var(--accent6);">4. Transport &mdash; ensures error-free, in-sequence delivery</div><div class="osi-layer" style="background:rgba(255,179,71,.15);color:var(--accent4);">3. Network &mdash; routes messages through the network</div><div class="osi-layer" style="background:rgba(255,107,107,.15);color:var(--accent3);">2. Data Link &mdash; oversees establishment of communication link</div><div class="osi-layer" style="background:rgba(122,128,153,.2);color:var(--muted);">1. Physical &mdash; transmits raw binary bits over the physical medium</div></div><p style="font-family:var(--font-code);font-size:11px;color:var(--muted);margin-top:12px;text-align:center;">Mnemonic (7&rarr;1): <strong style="color:var(--accent)">A</strong>ll <strong style="color:var(--accent)">P</strong>eople <strong style="color:var(--accent)">S</strong>eem <strong style="color:var(--accent)">T</strong>o <strong style="color:var(--accent)">N</strong>eed <strong style="color:var(--accent)">D</strong>ata <strong style="color:var(--accent)">P</strong>rocessing</p></div></div>
+  <div class="detail-block"><h4>Network Topologies</h4><div class="topo-grid"><div class="topo-card"><h5>&#11088; Star</h5><p>All devices connect to a central hub/switch. Easy to manage and add devices. <strong style="color:var(--accent3)">Single point of failure:</strong> central hub.</p></div><div class="topo-card"><h5>&#11835; Ring</h5><p>Devices in a circular loop. One-directional data flow. <strong style="color:var(--accent3)">Risk:</strong> one device failure can disrupt all.</p></div><div class="topo-card"><h5>&#9135; Bus</h5><p>All devices share one cable. Cheap and simple. <strong style="color:var(--accent3)">Risk:</strong> main cable failure = entire network down.</p></div><div class="topo-card"><h5>&#x1F578; Mesh</h5><p>Every device connects to every other. Most fault-tolerant. <strong style="color:var(--accent3)">Drawback:</strong> most expensive and complex.</p></div></div></div>
+  <div class="detail-block"><h4>Transmission Media Comparison</h4><table class="gen-table"><tr><th>Medium</th><th>Type</th><th>Speed</th><th>Key Characteristic</th></tr><tr><td>Twisted Pair</td><td>Wired</td><td>Up to 10 Gbps</td><td>Cheap, common in LAN; susceptible to EMI</td></tr><tr><td>Coaxial Cable</td><td>Wired</td><td>Up to 10 Gbps</td><td>Better shielding than twisted pair; used in cable TV</td></tr><tr><td>Fibre Optic</td><td>Wired</td><td>100+ Gbps</td><td>Fastest; immune to EMI; most expensive</td></tr><tr><td>Microwave</td><td>Wireless</td><td>Variable</td><td>Requires line of sight; long-distance point-to-point</td></tr><tr><td>Satellite</td><td>Wireless</td><td>Variable</td><td>Covers vast areas; higher latency; remote access</td></tr></table></div>`;}
+  document.getElementById('chDetailContent').innerHTML=`
+    <div class="page-tag">${ch.tag}</div>
+    <h2 style="font-size:22px;font-weight:800;margin-bottom:6px;">${ch.title}</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:24px;">${ch.overview}</p>
+    <div class="detail-block"><h4>Study Notes</h4>${nHtml}</div>
+    ${diag}
+    <div class="detail-block"><h4>Key Concepts &amp; Definitions (${ch.concepts.length} terms)</h4><div class="concept-list">${cHtml}</div></div>
+    <div class="detail-block"><h4>Exam Tip</h4><div class="exam-tip"><strong>&#x26A1; Tip:</strong> ${ch.tip}</div></div>
+    <div style="margin-top:20px;"><button class="btn-primary" onclick="goTestChapter(${ch.id})">Test yourself on ${ch.tag} &rarr;</button></div>
+  `;
+  document.getElementById('ch-grid-view').style.display='none';
+  document.getElementById('ch-detail-view').classList.add('open');
+  document.querySelectorAll('.ch-nav-btn').forEach((b,i)=>b.classList.toggle('active',i===id-1));
+  window.scrollTo(0,0);
+}
+function showChGrid(){
+  document.getElementById('ch-grid-view').style.display='block';
+  document.getElementById('ch-detail-view').classList.remove('open');
+}
+function buildChSelGrid(){
+  document.getElementById('chSelGrid').innerHTML=`<button class="ch-sel-btn" id="sel-all" onclick="toggleAll()">All units</button>`+chapters.map(ch=>`<button class="ch-sel-btn" id="sel-${ch.id}" onclick="toggleCh(${ch.id})">${ch.tag} \u2014 ${ch.title.split(' ').slice(0,2).join(' ')}</button>`).join('');
+}
+function toggleCh(id){const i=selChapters.indexOf(id);if(i>=0)selChapters.splice(i,1);else selChapters.push(id);updateSelUI();}
+function toggleAll(){selChapters=selChapters.length===chapters.length?[]:chapters.map(c=>c.id);updateSelUI();}
+function updateSelUI(){
+  chapters.forEach(ch=>{document.getElementById('sel-'+ch.id).classList.toggle('sel',selChapters.includes(ch.id));});
+  document.getElementById('sel-all').classList.toggle('sel',selChapters.length===chapters.length);
+  document.getElementById('startBtn').disabled=selChapters.length===0;
+}
+function shuffle(a){return[...a].sort(()=>Math.random()-.5);}
+function startQuiz(){
+  const pool=allQ.filter(q=>selChapters.includes(q.ch));
+  quizQs=shuffle(pool).slice(0,Math.min(10,pool.length));
+  quizIdx=0;quizScore=0;quizAnswered=false;
+  document.getElementById('quiz-setup').style.display='none';
+  document.getElementById('quiz-running').style.display='block';
+  document.getElementById('quiz-score').style.display='none';
+  renderQ();
+}
+function renderQ(){
+  if(quizIdx>=quizQs.length){showScore();return;}
+  const q=quizQs[quizIdx];
+  quizAnswered=false;
+  document.getElementById('progFill').style.width=Math.round((quizIdx/quizQs.length)*100)+'%';
+  document.getElementById('qMeta').textContent=`Question ${quizIdx+1} of ${quizQs.length} \u2014 ${chapters.find(c=>c.id===q.ch).tag}`;
+  document.getElementById('qText').textContent=q.q;
+  document.getElementById('optArea').innerHTML=q.opts.map((o,i)=>`<button class="opt-btn" id="opt-${i}" onclick="pickAns(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('');
+  document.getElementById('expBox').textContent='';
+  document.getElementById('expBox').classList.remove('show');
+  document.getElementById('nextBtn').classList.remove('show');
+  document.getElementById('nextBtn').textContent=quizIdx+1<quizQs.length?'Next question \u2192':'See results \u2192';
+}
+function pickAns(i){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  const q=quizQs[quizIdx];
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+  document.getElementById('opt-'+q.ans).classList.add('correct');
+  if(i!==q.ans)document.getElementById('opt-'+i).classList.add('wrong');
+  else quizScore++;
+  const el=document.getElementById('expBox');
+  el.innerHTML=`<strong>Explanation:</strong> ${q.exp}`;
+  el.classList.add('show');
+  document.getElementById('nextBtn').classList.add('show');
+}
+function nextQ(){quizIdx++;renderQ();}
+function showScore(){
+  document.getElementById('quiz-running').style.display='none';
+  document.getElementById('quiz-score').style.display='block';
+  const pct=Math.round((quizScore/quizQs.length)*100);
+  document.getElementById('scoreBig').textContent=quizScore+'/'+quizQs.length;
+  const msg=pct>=80?"Excellent! Strong command of BUIS5111. Review any concepts you hesitated on."
+    :pct>=60?"Good effort! Review explanations for missed questions and revisit those LU notes."
+    :"Keep going \u2014 revisit the Learning Unit notes and key term definitions for areas you struggled with.";
+  document.getElementById('scoreMsg').textContent=msg+' ('+pct+'%)';
+}
+function resetQuiz(){
+  selChapters=[];
+  document.getElementById('quiz-setup').style.display='block';
+  document.getElementById('quiz-running').style.display='none';
+  document.getElementById('quiz-score').style.display='none';
+  updateSelUI();
+}
+function goTestChapter(id){selChapters=[id];showSection('test');resetQuiz();toggleCh(id);}
+function toggleAns(btn){
+  const r=btn.nextElementSibling;
+  const shown=r.classList.contains('show');
+  r.classList.toggle('show');
+  btn.textContent=shown?'Show Answer':'Hide Answer';
+}
+buildSidebar();buildChGrid();buildChSelGrid();buildGlossary();
+</script>
+</body>
+</html>
